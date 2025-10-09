@@ -1,67 +1,68 @@
 public class Parser {
-    
-    // Novos atributos: o Parser agora TEM um Scanner
-    private Scanner scan;
-    private char currentToken; // Token atual (por hora, um caractere)
 
-    // Construtor: Recebe a entrada e inicializa o Scanner (com byte[])
+    private Scanner scan;            
+    private Token currentToken;      // Agora usa o objeto Token
+
     public Parser(byte[] input) {
-        scan = new Scanner(input);
-        // Pega o primeiro token para começar a análise
-        currentToken = scan.nextToken(); 
+        this.scan = new Scanner(input);
     }
 
-    // Método auxiliar para atualizar o token corrente
-    private void nextToken () {
+    public void parse() {
+        nextToken(); 
+        expr();
+        
+        // Verifica se chegamos ao fim da expressão (EOF)
+        if (currentToken.type != TokenType.EOF) {
+            throw new Error("Sintaxe inválida: caracteres extras no final da expressão.");
+        }
+    }
+    
+    private void nextToken() {
         currentToken = scan.nextToken();
     }
 
-    // --- Métodos de Análise Sintática (Tradução Dirigida por Sintaxe) ---
-    
-    // Método principal
-    public void parse () {
-        expr();
-        // Nota: O tutorial da Etapa 3 não verifica EOF, mas o código funcionará com a entrada de teste
+    // Agora 'casa' com o TokenType, não com 'char'
+    private void match(TokenType expectedType) {
+        if (currentToken.type == expectedType) {
+            nextToken();
+        } else {
+            throw new Error("Erro de Sintaxe. Esperado token de tipo: " + expectedType + 
+                            ", mas encontrou " + currentToken.type + 
+                            " (" + currentToken.lexeme + ")");
+        }
     }
 
-    // Regra: expr -> digit oper
+    // --- Regras Gramaticais ---
+
+    // Regra: expr → number oper
     void expr() {
-        digit();
+        number(); 
         oper();
     }
-    
-    // Regra: digit -> [0-9]
-    void digit () {
-        if (Character.isDigit(currentToken)) {
-						System.out.println("push " + currentToken); // Ação Semântica
-            match(currentToken);
+
+    // Regra: number → NUMBER 
+    void number() {
+        if (currentToken.type == TokenType.NUMBER) {
+            // Imprime o lexema (o valor completo do número)
+            System.out.println("push " + currentToken.lexeme);
+            match(TokenType.NUMBER); 
         } else {
-           throw new Error("syntax error. Esperado um dígito.");
+           throw new Error("Erro de Sintaxe. Esperado um número.");
         }
-    }
-    
-    // Regra: oper -> + digit oper | - digit oper | ϵ
-    void oper () {
-        if (currentToken == '+') {
-            match('+');
-            digit();
-            System.out.println("add"); // Ação Semântica
-            oper();
-        } else if (currentToken == '-') {
-            match('-');
-            digit();
-            System.out.println("sub"); // Ação Semântica
-            oper();
-        }
-        // O caso ϵ (vazio) é implícito
     }
 
-    // Método 'casamento': verifica o token corrente e avança.
-    private void match(char t) {
-        if (currentToken == t) {
-            nextToken(); // Se o token casar, avança para o próximo
-        }else {
-            throw new Error("syntax error. Token: " + currentToken + ", Esperado: " + t);
-        }
+    // Regra: oper → + number oper | - number oper | ϵ
+    void oper() {
+        if (currentToken.type == TokenType.PLUS) {
+            match(TokenType.PLUS);
+            number();
+            System.out.println("add");
+            oper();
+        } else if (currentToken.type == TokenType.MINUS) {
+            match(TokenType.MINUS);
+            number();
+            System.out.println("sub");
+            oper();
+        } 
     }
 }

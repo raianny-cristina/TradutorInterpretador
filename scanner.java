@@ -1,52 +1,84 @@
-// Scanner.java: Refatorado para lidar com caracteres individuais (char)
+// Scanner.java: Implementa o analisador léxico que retorna objetos Token
 public class Scanner {
 
-    private byte[] input; // Array de caracteres de entrada
-    private int current;  // Posição atual do caractere sendo lido
+    // Ajustado para String, o que torna a leitura e a função number() mais seguras.
+    private String input; 
+    private int current;
 
-    // Construtor: Inicializa o Scanner com a entrada em bytes
-	public Scanner (byte[] input) {
+    // Construtor: Recebe String
+    public Scanner(String input) {
         this.input = input;
-        this.current = 0; // Inicializamos a posição de leitura
+        this.current = 0;
     }
 
-    // Método auxiliar para olhar o próximo caractere sem avançar
-    private char peek () {
-        if (current < input.length)
-           return (char)input[current];
-       // Retorna caractere nulo para indicar Fim de Arquivo (EOF)
-       return '\0';
+    private char peek() {
+        if (current < input.length())
+            return input.charAt(current);
+        return '\0';
     }
 
-    // Método auxiliar que avança o ponteiro de leitura
-    private void advance()  {
-        char ch = peek();
-        if (ch != '\0') {
+    private void advance() {
+        if (current < input.length()) {
             current++;
         }
     }
 
-    // Retorna o próximo token (por hora, um caractere)
-    public char nextToken () {
+    // Lógica para agrupar múltiplos dígitos no Token.NUMBER
+    private Token number() {
+        int start = current;
+        while (Character.isDigit(peek())) {
+            advance();
+        }
+        
+        // Usa substring(), que é a forma mais robusta em Java para strings
+        String n = input.substring(start, current); 
+        return new Token(TokenType.NUMBER, n);
+    }
+
+    public Token nextToken() {
+        // Ignora espaços em branco (para robustez)
+        while (peek() == ' ') {
+            advance();
+        }
+        
         char ch = peek();
 
-        // Verifica se é um dígito
-        if (Character.isDigit(ch)) {
-						advance();
-            return ch;
+        // 1. Números
+        if (ch == '0') {
+            advance();
+            // Retorna o token para o zero
+            return new Token(TokenType.NUMBER, Character.toString(ch));
+        } else if (Character.isDigit(ch)) {
+            // Chama a função number() para agrupar outros dígitos
+            return number();
         }
 
-        // Verifica se é um operador
+        // 2. Operadores e EOF
         switch (ch) {
             case '+':
+                advance();
+                return new Token(TokenType.PLUS, "+");
             case '-':
                 advance();
-                return ch;
+                return new Token(TokenType.MINUS, "-");
+            case '\0':
+                return new Token(TokenType.EOF, "EOF");
             default:
-                break;
+                throw new Error("lexical error at " + ch);
         }
-
-        // Retorna caractere nulo se não for dígito, operador ou EOF
-        return '\0';
+    }
+    
+    // Main de teste do Scanner exigido pelo tutorial
+    public static void main(String[] args) {
+        // A ENTRADA É STRING e não byte[]
+        String input = "289-85+0+69";
+        Scanner scan = new Scanner(input); 
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
+        System.out.println(scan.nextToken());
     }
 }
