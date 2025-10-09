@@ -1,70 +1,67 @@
 public class Parser {
     
-    // Atributos
-    private byte[] input;
-    private int current; 
+    // Novos atributos: o Parser agora TEM um Scanner
+    private Scanner scan;
+    private char currentToken; // Token atual (por hora, um caractere)
 
-    // Construtor
-	public Parser (byte[] input) {
-        this.input = input;
-        this.current = 0; // Inicializa o ponteiro de leitura
+    // Construtor: Recebe a entrada e inicializa o Scanner (com byte[])
+    public Parser(byte[] input) {
+        scan = new Scanner(input);
+        // Pega o primeiro token para começar a análise
+        currentToken = scan.nextToken(); 
     }
 
-    // Método principal que inicia a análise
-    public void parse () {
-        expr(); // O símbolo inicial da gramática
+    // Método auxiliar para atualizar o token corrente
+    private void nextToken () {
+        currentToken = scan.nextToken();
     }
 
-    // --- Métodos Auxiliares ---
-
-    // Retorna o caractere corrente, ou '\0' (final de arquivo)
-    private char peek () {
-        if (current < input.length)
-           return (char)input[current];
-       return '\0';
-    }
+    // --- Métodos de Análise Sintática (Tradução Dirigida por Sintaxe) ---
     
-    // Verifica se o caractere corrente casa com o esperado e avança, ou lança erro sintático.
-    private void match (char c) {
-        if (c == peek()) {
-            current++;
-        } else {
-            throw new Error("syntax error. Esperado: " + c);
-        }
+    // Método principal
+    public void parse () {
+        expr();
+        // Nota: O tutorial da Etapa 3 não verifica EOF, mas o código funcionará com a entrada de teste
     }
 
-    // --- Implementação das Regras Gramaticais ---
-
-    // Regra: expr → digit oper
+    // Regra: expr -> digit oper
     void expr() {
         digit();
         oper();
     }
-
-    // Regra: digit → 0 | .. | 9
+    
+    // Regra: digit -> [0-9]
     void digit () {
-        if (Character.isDigit(peek())) {
-            // Ação Semântica: Imprime a operação PUSH
-            System.out.println("push " + peek());
-            match(peek());
+        if (Character.isDigit(currentToken)) {
+						System.out.println("push " + currentToken); // Ação Semântica
+            match(currentToken);
         } else {
            throw new Error("syntax error. Esperado um dígito.");
         }
     }
-
-    // Regra: oper → + digit oper | - digit oper | ε
+    
+    // Regra: oper -> + digit oper | - digit oper | ϵ
     void oper () {
-        if (peek() == '+') {
+        if (currentToken == '+') {
             match('+');
             digit();
             System.out.println("add"); // Ação Semântica
             oper();
-        } else if (peek() == '-') {
+        } else if (currentToken == '-') {
             match('-');
             digit();
             System.out.println("sub"); // Ação Semântica
             oper();
-        } 
-        // O caso ε (vazio) é implícito: se não for '+' nem '-', o método simplesmente retorna.
+        }
+        // O caso ϵ (vazio) é implícito
+    }
+
+    // Método 'casamento': verifica o token corrente e avança.
+    private void match(char t) {
+        if (currentToken == t) {
+            nextToken(); // Se o token casar, avança para o próximo
+        }else {
+            throw new Error("syntax error. Token: " + currentToken + ", Esperado: " + t);
+        }
     }
 }

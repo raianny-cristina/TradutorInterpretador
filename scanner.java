@@ -1,52 +1,52 @@
+// Scanner.java: Refatorado para lidar com caracteres individuais (char)
 public class Scanner {
 
-    private String input;
-    private int current;
+    private byte[] input; // Array de caracteres de entrada
+    private int current;  // Posição atual do caractere sendo lido
 
-    // Construtor: recebe a expressão de entrada
-    public Scanner(String input) {
+    // Construtor: Inicializa o Scanner com a entrada em bytes
+	public Scanner (byte[] input) {
         this.input = input;
-        this.current = 0;
+        this.current = 0; // Inicializamos a posição de leitura
     }
 
-    // Retorna o próximo token, sob demanda do Parser
-    public Token nextToken() {
-        // Ignora espaços em branco e tabulações (microssintaxe)
-        while (current < input.length() && Character.isWhitespace(input.charAt(current))) {
+    // Método auxiliar para olhar o próximo caractere sem avançar
+    private char peek () {
+        if (current < input.length)
+           return (char)input[current];
+       // Retorna caractere nulo para indicar Fim de Arquivo (EOF)
+       return '\0';
+    }
+
+    // Método auxiliar que avança o ponteiro de leitura
+    private void advance()  {
+        char ch = peek();
+        if (ch != '\0') {
             current++;
         }
+    }
 
-        // Fim de Arquivo (EOF)
-        if (current >= input.length()) {
-            return new Token(Token.EOF, "");
+    // Retorna o próximo token (por hora, um caractere)
+    public char nextToken () {
+        char ch = peek();
+
+        // Verifica se é um dígito
+        if (Character.isDigit(ch)) {
+						advance();
+            return ch;
         }
 
-        char c = input.charAt(current);
-
-        // --- 1. Operadores (+, -) ---
-        if (c == '+') {
-            current++;
-            return new Token(Token.PLUS, "+");
-        }
-        if (c == '-') {
-            current++;
-            return new Token(Token.MINUS, "-");
+        // Verifica se é um operador
+        switch (ch) {
+            case '+':
+            case '-':
+                advance();
+                return ch;
+            default:
+                break;
         }
 
-        // --- 2. Números de Múltiplos Dígitos (number -> [0-9]+) ---
-        if (Character.isDigit(c)) {
-            StringBuilder value = new StringBuilder();
-            
-            // Loop para ler todos os dígitos consecutivos
-            while (current < input.length() && Character.isDigit(input.charAt(current))) {
-                value.append(input.charAt(current));
-                current++;
-            }
-            // Retorna um token do tipo NUMBER com seu valor (ex: "45")
-            return new Token(Token.NUMBER, value.toString());
-        }
-
-        // Se encontrou um caractere desconhecido (erro léxico)
-        throw new Error("Erro Léxico: Caractere não reconhecido: " + c);
+        // Retorna caractere nulo se não for dígito, operador ou EOF
+        return '\0';
     }
 }
