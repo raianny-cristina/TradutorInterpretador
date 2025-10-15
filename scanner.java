@@ -22,6 +22,17 @@ public class Scanner {
             current++;
         }
     }
+    // Scanner.java
+// ...
+private void skipWhitespace() {
+    char ch = peek();
+    // Pula espaço, retorno de carro, tabulação e nova linha
+    while (ch == ' ' || ch == '\r' || ch == '\t' || ch == '\n') { 
+        advance();
+        ch = peek();
+    }
+}
+// ...
 
     // Lógica para agrupar múltiplos dígitos no Token.NUMBER
     private Token number() {
@@ -35,11 +46,9 @@ public class Scanner {
         return new Token(TokenType.NUMBER, n);
     }
 
-    public Token nextToken() {
-        // Ignora espaços em branco (para robustez)
-        while (peek() == ' ') {
-            advance();
-        }
+    public Token nextToken () {
+
+        skipWhitespace();
         
         char ch = peek();
 
