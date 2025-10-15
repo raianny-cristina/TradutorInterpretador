@@ -1,4 +1,3 @@
-// Parser.java (Estado da Etapa 5, pronto para a Etapa 6)
 // Parser.java: Implementa o analisador sintático com tradução para código pós-fixado
 
 public class Parser {
@@ -10,26 +9,41 @@ public class Parser {
         this.scan = new Scanner(input); 
     }
 
-    // Método principal: Agora começa com a regra de comando (letStatement)
+    // Símbolo Sentencial: statements -> statement*
     public void parse() {
         nextToken(); 
-        letStatement(); 
+        statements(); 
         
+        // Verifica se chegamos ao fim do arquivo
         if (currentToken.type != TokenType.EOF) {
-            throw new Error("Sintaxe inválida: caracteres extras no final da expressão.");
+             throw new Error("Sintaxe inválida: caracteres extras no final da expressão.");
         }
     }
     
-    private void nextToken() {
-        currentToken = scan.nextToken();
+    // Regra: statements -> statement*
+    void statements () {
+        while (currentToken.type != TokenType.EOF) {
+            statement();
+        }
     }
 
-    private void match(TokenType t) {
-        if (currentToken.type == t) {
-            nextToken();
-        }else {
-            throw new Error("syntax error: Expected " + t + " but found " + currentToken.type);
+    // Regra: statement -> printStatement | letStatement
+    void statement () {
+        if (currentToken.type == TokenType.PRINT) {
+            printStatement();
+        } else if (currentToken.type == TokenType.LET) {
+            letStatement();
+        } else {
+            throw new Error("syntax error: Expected LET or PRINT but found " + currentToken.type);
         }
+    }
+    
+    // Regra: printStatement -> 'print' expression ';'
+    void printStatement () {
+        match(TokenType.PRINT);
+        expr();
+        System.out.println("print"); // Geração de código
+        match(TokenType.SEMICOLON);
     }
     
     // Regra: letStatement -> 'let' identifier '=' expression ';'
@@ -43,7 +57,7 @@ public class Parser {
         
         expr(); 
         
-        System.out.println("pop "+id); 
+        System.out.println("pop "+id); // Geração de código: Atribuição
         
         match(TokenType.SEMICOLON);
     }
@@ -89,5 +103,18 @@ public class Parser {
             System.out.println("sub");
             oper();
         } 
+    }
+    
+    // --- Funções Auxiliares ---
+    private void nextToken() {
+        currentToken = scan.nextToken();
+    }
+
+    private void match(TokenType t) {
+        if (currentToken.type == t) {
+            nextToken();
+        }else {
+            throw new Error("syntax error: Expected " + t + " but found " + currentToken.type);
+        }
     }
 }
