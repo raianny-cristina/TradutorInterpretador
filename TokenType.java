@@ -2,6 +2,7 @@
 public enum TokenType {
     PLUS,
     MINUS,
+    IDENT,
     NUMBER, // Literals.
     EOF
 }
