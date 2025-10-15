@@ -1,12 +1,25 @@
-// Parser.java: Implementa o analisador sintático com tradução para código pós-fixado
+// Parser.java: Implementa o analisador sintático com GERAÇÃO de código para o Interpretador
 
 public class Parser {
 
     private Scanner scan; 
     private Token currentToken; 
+    
+    // NOVO: StringBuilder para armazenar o código de saída
+    private StringBuilder codeOutput = new StringBuilder(); 
 
     public Parser(byte[] input) {
         this.scan = new Scanner(input); 
+    }
+    
+    // NOVO: Método para imprimir o código em vez de System.out.println
+    private void emit(String command) {
+        codeOutput.append(command).append(System.getProperty("line.separator"));
+    }
+
+    // NOVO: Método para retornar o código gerado
+    public String output() {
+        return codeOutput.toString();
     }
 
     // Símbolo Sentencial: statements -> statement*
@@ -14,7 +27,6 @@ public class Parser {
         nextToken(); 
         statements(); 
         
-        // Verifica se chegamos ao fim do arquivo
         if (currentToken.type != TokenType.EOF) {
              throw new Error("Sintaxe inválida: caracteres extras no final da expressão.");
         }
@@ -42,7 +54,7 @@ public class Parser {
     void printStatement () {
         match(TokenType.PRINT);
         expr();
-        System.out.println("print"); // Geração de código
+        emit("print"); // Geração de código
         match(TokenType.SEMICOLON);
     }
     
@@ -57,7 +69,7 @@ public class Parser {
         
         expr(); 
         
-        System.out.println("pop "+id); // Geração de código: Atribuição
+        emit("pop "+id); // Geração de código: Atribuição
         
         match(TokenType.SEMICOLON);
     }
@@ -73,7 +85,7 @@ public class Parser {
         if (currentToken.type == TokenType.NUMBER)
             number();
         else if (currentToken.type == TokenType.IDENT) {
-            System.out.println("push "+currentToken.lexeme);
+            emit("push "+currentToken.lexeme);
             match(TokenType.IDENT);
         }
         else
@@ -83,7 +95,7 @@ public class Parser {
     // Regra: number -> NUMBER 
     void number () {
         if (currentToken.type == TokenType.NUMBER) {
-             System.out.println("push " + currentToken.lexeme);
+             emit("push " + currentToken.lexeme);
              match(TokenType.NUMBER);
         } else {
              throw new Error("syntax error: Expected NUMBER");
@@ -95,12 +107,12 @@ public class Parser {
         if (currentToken.type == TokenType.PLUS) {
             match(TokenType.PLUS);
             term(); 
-            System.out.println("add");
+            emit("add"); 
             oper();
         } else if (currentToken.type == TokenType.MINUS) {
             match(TokenType.MINUS);
             term(); 
-            System.out.println("sub");
+            emit("sub"); 
             oper();
         } 
     }
