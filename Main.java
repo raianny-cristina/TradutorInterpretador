@@ -1,7 +1,9 @@
 public class Main {
-    public static void main(String[] args) throws Exception {
-        // !!! ENTRADA DE TESTE DA ETAPA 4/5 !!!
-        String input = "45+89-876"; 
+    public static void main(String[] args) {
+        String input = "89+508-7+99";
+        Parser p = new Parser (input.getBytes());
+        p.parse();
+    }
         
         try {
             Parser p = new Parser(input.getBytes()); 
